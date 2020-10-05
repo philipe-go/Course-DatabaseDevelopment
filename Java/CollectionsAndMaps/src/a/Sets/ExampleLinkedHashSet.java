@@ -13,7 +13,7 @@ public class ExampleLinkedHashSet {
 		
 		System.out.println(mySet.size());
 		
-		Iterator<String> iter = mySet.iterator();
+		Iterator<String> iter = mySet.iterator(); //<<<<<< ITERATOR implementation
 		
 		while(iter.hasNext()) {
 			System.out.print(iter.next()+" ; ");
