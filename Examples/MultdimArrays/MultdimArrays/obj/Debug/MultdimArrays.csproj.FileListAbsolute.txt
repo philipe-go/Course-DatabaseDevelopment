@@ -1,0 +1,6 @@
+F:\CS-Tests\MultdimArrays\MultdimArrays\bin\Debug\MultdimArrays.exe.config
+F:\CS-Tests\MultdimArrays\MultdimArrays\bin\Debug\MultdimArrays.exe
+F:\CS-Tests\MultdimArrays\MultdimArrays\bin\Debug\MultdimArrays.pdb
+F:\CS-Tests\MultdimArrays\MultdimArrays\obj\Debug\MultdimArrays.csproj.CoreCompileInputs.cache
+F:\CS-Tests\MultdimArrays\MultdimArrays\obj\Debug\MultdimArrays.exe
+F:\CS-Tests\MultdimArrays\MultdimArrays\obj\Debug\MultdimArrays.pdb

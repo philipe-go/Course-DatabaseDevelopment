@@ -1,0 +1,11 @@
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project2.exe.config
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project2.exe
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project2.pdb
+F:\CS-Tests\MySolution2\Project2\obj\Debug\Project2.csprojAssemblyReference.cache
+F:\CS-Tests\MySolution2\Project2\obj\Debug\Project2.csproj.CoreCompileInputs.cache
+F:\CS-Tests\MySolution2\Project2\obj\Debug\Project2.exe
+F:\CS-Tests\MySolution2\Project2\obj\Debug\Project2.pdb
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project1.exe
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project1.pdb
+F:\CS-Tests\MySolution2\Project2\bin\Debug\Project1.exe.config
+F:\CS-Tests\MySolution2\Project2\obj\Debug\Project2.csproj.CopyComplete
