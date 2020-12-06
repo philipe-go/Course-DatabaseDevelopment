@@ -1,10 +1,13 @@
 package disconnected;
 
+import java.util.regex.*; 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -14,8 +17,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-
-import connectedMode.EditForm.MyEditTableModel;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -27,6 +28,10 @@ public class EditForm extends JDialog {
 	
 	boolean isUpdate = true; 
 	public static EditForm current;
+	
+	Connection con = QueryGUI.current.con;
+	PreparedStatement stmt = QueryGUI.current.stmt;
+	ResultSet rs = QueryGUI.current.rs;
 	
 	class MyEditTableModel extends DefaultTableModel {
 		private String columnNames []={"ID", "NAME", "AGE", "ADDRESS",
@@ -94,21 +99,23 @@ public class EditForm extends JDialog {
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				QueryGUI.current.connect(); //CONNECT TO DATABASE
+				//CONNECT TO DATABASE
+				QueryGUI.current.connect();
+				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
 				
 				if(isUpdate) {					
 					if (myValidate()) {
 						try {
-								QueryGUI.current.stmt.executeUpdate(
-										//TODO - change to injection proof
-									"UPDATE company SET name = '"+ table.getValueAt(0, 1)+"',"+
-									" age = "+table.getValueAt(0, 2)+","+
-									" address =  '"+ table.getValueAt(0, 3) +"',"+
-									" salary = "+ table.getValueAt(0, 4) +
-									" WHERE id = "+table.getValueAt(0, 0)
-										);
-								QueryGUI.current.reload();
-								JOptionPane.showMessageDialog(null, "DataBase updated");			
+							stmt = con.prepareStatement("UPDATE company SET name = ?, age = ?, address = ?, salary = ? WHERE id = ?");							
+							stmt.setString(1, (String)table.getValueAt(0, 1));
+							stmt.setInt(2, Integer.parseInt(""+table.getValueAt(0, 2)));
+							stmt.setString(3, (String)table.getValueAt(0, 3));
+							stmt.setDouble(4, Double.parseDouble(""+table.getValueAt(0, 4)));
+							stmt.setInt(5, Integer.parseInt(""+table.getValueAt(0, 0)));
+							stmt.executeUpdate();
+							stmt.close();
+							QueryGUI.current.reload();
+							JOptionPane.showMessageDialog(null, "DataBase updated");			
 						} 
 						catch (SQLException e1) {
 								JOptionPane.showMessageDialog(null, "DataBase not updated");
@@ -119,18 +126,15 @@ public class EditForm extends JDialog {
 				}
 				else {
 					if (myValidate()) {
-						try {
-								QueryGUI.current.stmt.executeUpdate(
-										//TODO - change to injection proof
-									"INSERT INTO company (id,name,age,address,salary)" +
-									" VALUES (" +
-										table.getValueAt(0, 0)+","+
-										"'" + table.getValueAt(0, 1)+"',"+
-										table.getValueAt(0, 2)+","+
-										"'"+ table.getValueAt(0, 3) +"',"+
-										table.getValueAt(0, 4) + 
-									")"								
-										);
+						try {							 
+							stmt = con.prepareStatement("INSERT INTO company (id,name,age,address,salary) VALUES (?, ?, ?, ?, ?)");
+							stmt.setInt(1, Integer.parseInt(""+table.getValueAt(0, 0)));
+							stmt.setString(2, (String)table.getValueAt(0, 1));
+							stmt.setInt(2, Integer.parseInt(""+table.getValueAt(0, 2)));
+							stmt.setString(3, (String)table.getValueAt(0, 3));
+							stmt.setDouble(4, Double.parseDouble(""+table.getValueAt(0, 4)));
+							stmt.executeUpdate();
+							stmt.close();
 							QueryGUI.current.reload();
 							JOptionPane.showMessageDialog(null, "Data added to DataBase");
 						} 
@@ -142,7 +146,9 @@ public class EditForm extends JDialog {
 					}
 				}
 				
-				QueryGUI.current.disconnect(); //DISCONNECT FROM DATABASE
+				//DISCONNECT FROM DATABASE
+				QueryGUI.current.disconnect();
+				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
 			}
 		});
 		okButton.setBounds(475, 64, 89, 23);
@@ -161,9 +167,8 @@ public class EditForm extends JDialog {
 	
 	//#### CLEAR METHOD TO CLEAR INPUTS
 	public void clear(){ 
-		//editDataModel.setRow(new Object[] {null, null, null, null , null});
-		editDataModel.setRowCount(0);  // Delete the lines (there is only one)
-		editDataModel.setRowCount(1);  // Add an empty line
+		editDataModel.setRowCount(0);
+		editDataModel.setRowCount(1);
 	}
 		
 	//#### INPUT CHECKER QUERY INFO
@@ -174,36 +179,45 @@ public class EditForm extends JDialog {
 				return false;				
 			}
 			try {
-				ResultSet rs = QueryGUI.current.stmt.executeQuery( 
-						"SELECT * FROM company WHERE id =  "+ table.getValueAt(0, 0)
-						);
+				stmt = QueryGUI.current.con.prepareStatement("SELECT * FROM company WHERE id = ?");
+				stmt.setInt(1,Integer.parseInt(""+table.getValueAt(0, 0)));
+				stmt.executeUpdate();
+				rs = stmt.getGeneratedKeys();
+				stmt.close();
+
 				if (rs.first()) {
-					JOptionPane.showMessageDialog(null, "Repeated id: id already in Database");
+					JOptionPane.showMessageDialog(null, "Invalid id: already in Database");
 					return false;
 				}
+				rs.close();
+
 			} catch (SQLException e) {
 				JOptionPane.showMessageDialog(null, "DataBase inaccessible");
 				return false;
 			}		
 		}
 		if(!isNonNegInteger(table.getValueAt(0, 2))) {
-			JOptionPane.showMessageDialog(null, "Invalid age: age must be a non-negative integer");
+			JOptionPane.showMessageDialog(null, "Invalid age: age must be a greater than 0");
 			return false;				
+		}
+		if(!isValidName(table.getValueAt(0,1))) {
+			JOptionPane.showMessageDialog(null, "Invalid name: Letters only and it must start with Uppercase and all other need to be lowercase");
+			return false;	
 		}
 		if(!isNonNegDouble(table.getValueAt(0, 4))) {
 			JOptionPane.showMessageDialog(null, "Invalid salary: salary must be a non-negative double");
 			return false;				
 		}
+		
 		return true;
 	}	
 		
 	//#### INPUT CHECKER INT
 	static boolean isNonNegInteger(Object s) {
-		if (s==null){return false; }
+		if (s==null){return false;}
 		try{
 			 int r=Integer.parseInt(""+s);
-			 if (r>=0) { return true; }
-			 else { return false; }
+			 return r>0 ? true: false;
 		}
 		catch (Exception e){
 			return false;
@@ -212,11 +226,22 @@ public class EditForm extends JDialog {
 	
 	//#### INPUT CHECKER DOUBLE
 	static boolean isNonNegDouble(Object s) {
-		if (s==null){return false; }
+		if (s==null) return false; 
 		try{
 			 double r=Double.parseDouble(""+s);
-			 if (r>=0) { return true; }
-			 else { return false; }
+			 return r>=0? true : false;
+		}
+		catch (Exception e){
+			return false;
+		}
+	}
+	
+	//#### INPUT CHECKER NAME
+	static boolean isValidName(Object s) {
+		if (s==null) return false;
+		try {
+			String st = (String)(s);
+			return Pattern.matches("[A-Z]{1}[a-z]", st);
 		}
 		catch (Exception e){
 			return false;

@@ -39,13 +39,14 @@ public class QueryGUI extends JFrame {
 
 	private JPanel contentPane;
 	private JTable table;
-	private JLabel conStatusTxt;
+	protected JLabel conStatusTxt;
 	
 	public static QueryGUI current;
 	
 	boolean isConnected = false;
 	
 	Connection con;
+	Statement stm;
 	PreparedStatement stmt;
 	ResultSet rs;
 
@@ -67,7 +68,6 @@ public class QueryGUI extends JFrame {
 
 	//#### FORM
 	public QueryGUI() {
-		
 		table = new JTable();
 		connect(); //CONNECT TO DATABASE
 		reload();
@@ -76,8 +76,7 @@ public class QueryGUI extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				
-				disconnect(); //DISCONNECT FROM DATABASE
+				disconnect();
 			}
 		});
 		
@@ -88,7 +87,6 @@ public class QueryGUI extends JFrame {
 		JMenu mnNewMenu_2 = new JMenu("Database");
 		menuBar.add(mnNewMenu_2);
 		
-
 		
 		//#### CONNECT BUTTON
 		JMenuItem connectBtn = new JMenuItem("Connect");
@@ -118,13 +116,12 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Insert");
 		mntmNewMenuItem_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				connect();
+			
 				EditForm.current.clear();
 				EditForm.current.isUpdate = false;
 				EditForm.current.setTitle("Add employee");
 				EditForm.current.setVisible(true);
-				disconnect();
-				updateConnStatus(conStatusTxt);
+
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem_1);
@@ -133,7 +130,7 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Update");
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				connect();
+
 				EditForm.current.clear();
 				EditForm.current.isUpdate = true;	
 				if (table.getSelectedRowCount() == 0) { 
@@ -147,8 +144,6 @@ public class QueryGUI extends JFrame {
 					EditForm.current.setTitle("Update employee");
 					EditForm.current.setVisible(true);
 				}
-				disconnect();
-				updateConnStatus(conStatusTxt);
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem_2);
@@ -159,7 +154,6 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Delete");
 		mntmNewMenuItem_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				connect();
 				if (table.getSelectedRowCount() == 0) { 
 					JOptionPane.showMessageDialog(null, "No line is selected");
 				}
@@ -172,18 +166,21 @@ public class QueryGUI extends JFrame {
 							   JOptionPane.QUESTION_MESSAGE,
 							   null); 
 					if (opt == 0) {
+						connect();
 						try {
 							for (int i = 0; i < n_lines_to_delete; i++) {
-								stmt.executeUpdate("DELETE FROM company WHERE id = "
-										+ table.getValueAt(table.getSelectedRows()[i], 0));
+																		
+								stmt = con.prepareStatement("DELETE FROM company WHERE id = ?");
+								stmt.setInt(1,Integer.parseInt(""+table.getValueAt(table.getSelectedRows()[i], 0)));
+								stmt.executeUpdate();
 							}
 							reload();
 						} catch (SQLException e1) {
 							e1.printStackTrace();
 						}
+						disconnect();
 					}
 				}
-				disconnect();
 				updateConnStatus(conStatusTxt);
 			}
 		});
@@ -197,7 +194,7 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem = new JMenuItem("About");
 		mntmNewMenuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null, "Example - Database programming course (Prof. Ramiro)");
+				JOptionPane.showMessageDialog(null, "Database Project - Fall 2020 - Philipe Gouveia");
 			}
 		});
 		
@@ -229,9 +226,7 @@ public class QueryGUI extends JFrame {
 		try {
 			 String url = "jdbc:mysql://localhost:3306/EMP";
 			 con = DriverManager.getConnection(url,"root", "root");
-			 ResultSet rs = stmt.executeQuery();
-			 stmt = con.prepareStatement(sql)
-			 //stmt = con.createStatement();	
+		 
 			 isConnected = true;
 		}
 		catch(Exception ex) {
@@ -242,7 +237,8 @@ public class QueryGUI extends JFrame {
 	//#### DATABASE DISCONNECTION
 	void disconnect() {
 		try {
-			stmt.close();
+			if (stmt != null) stmt.close();
+			if (rs != null) rs.close();
 			con.close();
 			isConnected = false;
 		} catch (SQLException e1) {
@@ -250,6 +246,7 @@ public class QueryGUI extends JFrame {
 		}
 	}
 	
+	//#### UPDATE VISUAL INFORMATION ABOUT CONNECTION STATUS
 	void updateConnStatus(JLabel textField)
 	{
 		if (isConnected) textField.setText("CONNECTED");
@@ -260,13 +257,12 @@ public class QueryGUI extends JFrame {
 	//#### REFRESH TABLE WITH DATABASE DATA
 	void reload() {
 		try {
-				
-			 ResultSet rs = stmt.executeQuery( "SELECT * FROM COMPANY" );
-			 table.setModel(buildTableModel(rs));   
-			 
-		     rs.close();
-		     
-		     
+			PreparedStatement stmt = con.prepareStatement("SELECT * FROM COMPANY"); 
+			ResultSet rs = stmt.executeQuery();
+			table.setModel(buildTableModel(rs));
+			
+			rs.close();
+			stmt.close();
 		}
 		catch( Exception e ) {
 			 e.printStackTrace();
@@ -287,14 +283,12 @@ public class QueryGUI extends JFrame {
 	public static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
 		ResultSetMetaData metaData = rs.getMetaData();
 
-		//colum names
 		Vector<String> columnNames = new Vector<String>();
 		int columnCount = metaData.getColumnCount();
 		for (int column = 1; column <= columnCount; column++) {
 			columnNames.add(metaData.getColumnName(column));
 		}
 
-		//table data
 		Vector<Vector<Object>> data = new Vector<Vector<Object>>();
 		while (rs.next()) {
 			Vector<Object> row = new Vector<Object>();
