@@ -116,7 +116,10 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Insert");
 		mntmNewMenuItem_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			
+				
+				connect();
+				updateConnStatus(conStatusTxt);
+				
 				EditForm.current.clear();
 				EditForm.current.isUpdate = false;
 				EditForm.current.setTitle("Add employee");
@@ -130,7 +133,9 @@ public class QueryGUI extends JFrame {
 		JMenuItem mntmNewMenuItem_2 = new JMenuItem("Update");
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				
+connect();
+updateConnStatus(conStatusTxt);
 				EditForm.current.clear();
 				EditForm.current.isUpdate = true;	
 				if (table.getSelectedRowCount() == 0) { 
@@ -147,8 +152,6 @@ public class QueryGUI extends JFrame {
 			}
 		});
 		mnNewMenu.add(mntmNewMenuItem_2);
-		
-		// table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		//#### DELETE BUTTON
 		JMenuItem mntmNewMenuItem_3 = new JMenuItem("Delete");
@@ -268,7 +271,7 @@ public class QueryGUI extends JFrame {
 			 e.printStackTrace();
 		}
 	}
-	
+
 	
 	private  Object[] getRow(int row){  	
 		Object lign[] = new Object [table.getColumnCount()]; 

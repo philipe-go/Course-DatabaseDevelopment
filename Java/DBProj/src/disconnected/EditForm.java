@@ -99,9 +99,9 @@ public class EditForm extends JDialog {
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				//CONNECT TO DATABASE
-				QueryGUI.current.connect();
-				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
+//				//CONNECT TO DATABASE
+//				QueryGUI.current.connect();
+//				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
 				
 				if(isUpdate) {					
 					if (myValidate()) {
@@ -146,9 +146,9 @@ public class EditForm extends JDialog {
 					}
 				}
 				
-				//DISCONNECT FROM DATABASE
-				QueryGUI.current.disconnect();
-				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
+//				//DISCONNECT FROM DATABASE
+//				QueryGUI.current.disconnect();
+//				QueryGUI.current.updateConnStatus(QueryGUI.current.conStatusTxt);
 			}
 		});
 		okButton.setBounds(475, 64, 89, 23);
@@ -217,7 +217,7 @@ public class EditForm extends JDialog {
 		if (s==null){return false;}
 		try{
 			 int r=Integer.parseInt(""+s);
-			 return r>0 ? true: false;
+			 return r>0;
 		}
 		catch (Exception e){
 			return false;
@@ -229,7 +229,7 @@ public class EditForm extends JDialog {
 		if (s==null) return false; 
 		try{
 			 double r=Double.parseDouble(""+s);
-			 return r>=0? true : false;
+			 return r>=0;
 		}
 		catch (Exception e){
 			return false;
@@ -241,7 +241,7 @@ public class EditForm extends JDialog {
 		if (s==null) return false;
 		try {
 			String st = (String)(s);
-			return Pattern.matches("[A-Z]{1}[a-z]", st);
+			return st.matches("[a-zA-Z]+") && Character.isUpperCase(st.charAt(0));
 		}
 		catch (Exception e){
 			return false;
