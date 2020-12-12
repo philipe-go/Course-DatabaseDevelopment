@@ -71,7 +71,7 @@ public class QueryGUI extends JFrame {
 		table = new JTable();
 		connect(); //CONNECT TO DATABASE
 		reload();
-		disconnect(); //DISCONNECT FROM DATABASE
+//		disconnect(); //DISCONNECT FROM DATABASE
 				
 		addWindowListener(new WindowAdapter() {
 			@Override
